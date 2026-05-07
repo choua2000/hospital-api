@@ -1,0 +1,200 @@
+// ============================================
+// Hospital Management System - Prisma Schema
+// ============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum Role {
+  ADMIN
+  DOCTOR
+  NURSE
+  RECEPTIONIST
+  PATIENT
+  USER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+// ============================================
+// User Model - Handles authentication & roles
+// ============================================
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  password         String
+  role             Role      @default(USER)
+  imageUrl         String?   @map("image_url")
+  isActive         Boolean   @default(true) @map("is_active")
+  resetToken       String?   @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  doctor Doctor?
+
+  @@map("users")
+}
+
+// ============================================
+// Doctor Model - Doctor profile & schedule
+// ============================================
+model Doctor {
+  id             String  @id @default(uuid())
+  userId         String  @unique @map("user_id")
+  specialization String
+  phone          String?
+  schedule       Json? // Stores weekly schedule as JSON
+  bio            String?
+  isAvailable    Boolean @default(true) @map("is_available")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+
+  @@map("doctors")
+}
+
+// ============================================
+// Patient Model - Patient demographics
+// ============================================
+model Patient {
+  id        String   @id @default(uuid())
+  name      String
+  dob       DateTime @map("date_of_birth")
+  gender    Gender
+  phone     String
+  email     String?
+  address   String?
+  imageUrl  String?  @map("image_url")
+  bloodType String?  @map("blood_type")
+  allergies String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  bills          Bill[]
+
+  @@map("patients")
+}
+
+// ============================================
+// Appointment Model - Patient-Doctor meetings
+// ============================================
+model Appointment {
+  id        String            @id @default(uuid())
+  patientId String            @map("patient_id")
+  doctorId  String            @map("doctor_id")
+  date      DateTime
+  endDate   DateTime?         @map("end_date")
+  status    AppointmentStatus @default(PENDING)
+  reason    String?
+  notes     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("appointments")
+}
+
+// ============================================
+// Medical Record Model - Diagnoses & prescriptions
+// ============================================
+model MedicalRecord {
+  id           String  @id @default(uuid())
+  patientId    String  @map("patient_id")
+  doctorId     String  @map("doctor_id")
+  diagnosis    String
+  prescription String?
+  notes        String?
+  fileUrl      String? @map("file_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor  Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@map("medical_records")
+}
+
+// ============================================
+// Bill Model - Invoices & payment tracking
+// ============================================
+model Bill {
+  id          String        @id @default(uuid())
+  patientId   String        @map("patient_id")
+  totalAmount Float         @map("total_amount")
+  paidAmount  Float         @default(0) @map("paid_amount")
+  status      PaymentStatus @default(UNPAID)
+  description String?
+  dueDate     DateTime?     @map("due_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  patient   Patient    @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  billItems BillItem[]
+
+  @@map("bills")
+}
+
+// ============================================
+// Bill Item Model - Individual line items
+// ============================================
+model BillItem {
+  id          String @id @default(uuid())
+  billId      String @map("bill_id")
+  description String
+  amount      Float
+  quantity    Int    @default(1)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@map("bill_items")
+}
