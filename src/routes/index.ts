@@ -7,11 +7,7 @@ import appointmentRoutes from "./appointment.routes";
 import medicalRecordRoutes from "./medicalRecord.routes";
 import billRoutes from "./bill.routes";
 
-const   router = Router();
-
-router.get("/ping", (req, res) => {
-    res.json({ message: "API is working" });
-});
+const router = Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);

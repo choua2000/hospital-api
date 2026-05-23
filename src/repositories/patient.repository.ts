@@ -39,6 +39,15 @@ export class PatientRepository {
     }
 
     /**
+     * Find patient by email
+     */
+    async findByEmail(email: string) {
+        return prisma.patient.findFirst({
+            where: { email },
+        });
+    }
+
+    /**
      * Find all patients with pagination and search
      */
     async findAll(params: {

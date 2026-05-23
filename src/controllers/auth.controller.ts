@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { apiResponse } from "../utils/apiResponse";
+import { env } from "../config";
 
 const authService = new AuthService();
 
@@ -42,18 +43,18 @@ export class AuthController {
     static forgotPassword = asyncHandler(async (req: Request, res: Response) => {
         const { email } = req.body;
         const result = await authService.forgotPassword(email);
-        return apiResponse.success(res, "Password reset token generated", result);
+        return apiResponse.success(res, "OTP sent to email", result);
+    });
+
+    static verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+        const { email, otp } = req.body;
+        const result = await authService.verifyOtp(email, otp);
+        return apiResponse.success(res, "OTP verified successfully", result);
     });
 
     static resetPassword = asyncHandler(async (req: Request, res: Response) => {
         const result = await authService.resetPassword(req.body);
         return apiResponse.success(res, "Password reset successfully", result);
-    });
-
-    static login = asyncHandler(async (req: Request, res: Response) => {
-        const { email, password } = req.body;
-        const result = await authService.login(email, password);
-        return apiResponse.success(res, "Login successful", result);
     });
 
     /**
@@ -64,5 +65,17 @@ export class AuthController {
         const userId = req.user.id;
         const user = await authService.getMe(userId);
         return apiResponse.success(res, "Profile retrieved successfully", user);
+    });
+
+    /**
+     * Handle Google OAuth Callback and redirect to frontend
+     */
+    static googleCallback = asyncHandler(async (req: Request, res: Response) => {
+        // @ts-ignore
+        const result = await authService.googleLogin(req.user);
+
+        const frontendUrl = env.FRONTEND_URL.replace(/\/$/, "");
+        const redirectUrl = `${frontendUrl}/auth/callback?token=${encodeURIComponent(result.token)}`;
+        return res.redirect(redirectUrl);
     });
 }

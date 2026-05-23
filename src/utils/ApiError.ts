@@ -24,6 +24,10 @@ export class ApiError extends Error {
         return new ApiError(401, message);
     }
 
+    static unauthorizedOrForbidden(message = "Unauthorized") {
+        return new ApiError(401, message);
+    }
+
     static forbidden(message = "Forbidden") {
         return new ApiError(403, message);
     }

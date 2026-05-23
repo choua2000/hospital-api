@@ -69,7 +69,11 @@ export class AppointmentRepository {
         const skip = (page - 1) * limit;
 
         const where: Prisma.AppointmentWhereInput = {
-            ...(status && { status: status as any }),
+            ...(status && {
+                status: status.includes(",") 
+                    ? { in: status.split(",") as any } 
+                    : (status as any)
+            }),
             ...(doctorId && { doctorId }),
             ...(patientId && { patientId }),
             ...(dateFrom || dateTo

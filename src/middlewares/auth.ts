@@ -9,15 +9,21 @@ import { env } from "../config/env";
 import { ApiError } from "../utils/ApiError";
 import prisma from "../config/database";
 
-// Extend Express Request to include user
-export interface AuthRequest extends Request {
-    user?: {
-        id: string;
-        email: string;
-        role: string;
-        name: string;
-    };
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+                email: string;
+                role: string;
+                name: string;
+            };
+        }
+    }
 }
+
+// Keep AuthRequest alias for complete compatibility
+export type AuthRequest = Request;
 
 interface JwtPayload {
     id: string;

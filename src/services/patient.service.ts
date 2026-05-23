@@ -38,6 +38,28 @@ export class PatientService {
     }
 
     /**
+     * Get patient by authenticated user
+     */
+    async getMe(user: any) {
+        if (!user || !user.email) {
+            throw ApiError.unauthorized("Unauthorized access");
+        }
+
+        let patient = await patientRepository.findByEmail(user.email);
+
+        if (!patient) {
+            patient = await patientRepository.create({
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                dob: new Date(),
+                gender: "OTHER",
+            });
+        }
+        return patient;
+    }
+
+    /**
      * Update patient
      */
     async update(id: string, data: Prisma.PatientUpdateInput) {

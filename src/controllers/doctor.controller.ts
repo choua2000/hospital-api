@@ -36,6 +36,19 @@ export class DoctorController {
 
     static delete = asyncHandler(async (req: Request, res: Response) => {
         const result = await doctorService.delete(req.params.id as string);
-        return apiResponse.success(res, result.message);
+        return apiResponse.success(res, result.message);  
+    });
+
+    static uploadImage = asyncHandler(async (req: Request, res: Response) => {
+        if (!req.file) {
+            return apiResponse.error(res, "Please provide an image file", 400);
+        }
+        const doctor = await doctorService.uploadImage(req.params.id as string, req.file);
+        return apiResponse.success(res, "Doctor image uploaded successfully", doctor);
+    });
+
+    static deleteImage = asyncHandler(async (req: Request, res: Response) => {
+        const doctor = await doctorService.deleteImage(req.params.id as string);
+        return apiResponse.success(res, "Doctor image deleted successfully", doctor);
     });
 }

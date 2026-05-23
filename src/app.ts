@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import { env } from "./config/env";
+import { env, passport } from "./config";
 import { errorHandler } from "./middlewares";
 import { ApiError } from "./utils/ApiError";
 import routes from "./routes";
@@ -19,7 +19,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-    origin: env.NODE_ENV === "production" ? env.CORS_ORIGIN : ["http://localhost:3003", "http://localhost:3000", "http://localhost:5173", env.CORS_ORIGIN],
+    origin: env.NODE_ENV === "production" ? env.CORS_ORIGIN : ["http://localhost:3003", "http://localhost:3200", "http://localhost:5173", env.CORS_ORIGIN],
     credentials: true,
 }));
 
@@ -38,6 +38,7 @@ app.use("/api", limiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 // ============================================
 // Routes

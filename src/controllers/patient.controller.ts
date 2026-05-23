@@ -28,7 +28,14 @@ export class PatientController {
         return apiResponse.success(res, "Patient retrieved successfully", patient);
     });
 
+    static getMe = asyncHandler(async (req: Request, res: Response) => {
+        // @ts-ignore - user is attached by authenticate middleware
+        const patient = await patientService.getMe(req.user);
+        return apiResponse.success(res, "Patient profile retrieved successfully", patient);
+    });
+
     static update = asyncHandler(async (req: Request, res: Response) => {
+        // @ts-ignore
         const patient = await patientService.update(req.params.id as string, req.body);
         return apiResponse.success(res, "Patient updated successfully", patient);
     });

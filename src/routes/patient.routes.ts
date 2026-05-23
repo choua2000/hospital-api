@@ -11,6 +11,7 @@ router.use(authenticate);
 
 router.post("/", validate(createPatientSchema), PatientController.create);
 router.get("/", PatientController.getAll);
+router.get("/me", PatientController.getMe);
 router.get("/:id", PatientController.getById);
 router.put("/:id", validate(updatePatientSchema), PatientController.update);
 router.post("/:id/image", upload.single("image"), PatientController.uploadImage);
